@@ -1,0 +1,27 @@
+name: Daily Data Simulator
+
+on:
+  schedule:
+    - cron: '0 1 * * *' # every day 1am UTC = 6:30am IST
+  workflow_dispatch: # adds a manual "Run workflow" button
+
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install sqlalchemy psycopg2-binary
+
+      - name: Release daily batch
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        run: python src/simulate_daily.py
