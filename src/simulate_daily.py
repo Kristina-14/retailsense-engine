@@ -13,7 +13,7 @@ def release_daily_batch(batch_size: int = 500):
             WHERE invoice IN (
                 SELECT invoice FROM retail_transactions
                 WHERE release_date IS NULL
-                ORDER BY invoice_date ASC
+                ORDER BY invoicedate ASC
                 LIMIT :batch
             )
         """), {"batch": batch_size})
