@@ -2,8 +2,8 @@ name: Daily Data Simulator
 
 on:
   schedule:
-    - cron: '0 1 * * *' # every day 1am UTC = 6:30am IST
-  workflow_dispatch: # adds a manual "Run workflow" button
+    - cron: '0 1 * * *'
+  workflow_dispatch:
 
 jobs:
   simulate:
@@ -21,7 +21,32 @@ jobs:
       - name: Install dependencies
         run: pip install sqlalchemy psycopg2-binary
 
+      - name: Wake up Supabase
+        env:
+          SUPABASE_PASSWORD: ${{ secrets.SUPABASE_PASSWORD }}
+        run: |
+          python -c "
+          import os, time
+          from sqlalchemy import create_engine, text
+          from urllib.parse import quote_plus
+          password = quote_plus(os.environ['SUPABASE_PASSWORD'])
+          url = f'postgresql://postgres.gsqizlwftqumpjhcmmzk:{password}@aws-1-ap-south-1.pooler.supabase.com:5432/postgres'
+          engine = create_engine(url)
+          for i in range(3):
+              try:
+                  with engine.connect() as conn:
+                      conn.execute(text('SELECT 1'))
+                  print('✓ Supabase awake')
+                  break
+              except Exception as e:
+                  print(f'Wakeup attempt {i+1}: {e}')
+                  time.sleep(15)
+          "
+
+      - name: Wait for DB to stabilise
+        run: sleep 5
+
       - name: Release daily batch
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PASSWORD: ${{ secrets.SUPABASE_PASSWORD }}
         run: python src/simulate_daily.py
