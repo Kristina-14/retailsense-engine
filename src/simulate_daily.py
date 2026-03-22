@@ -11,7 +11,7 @@ def get_engine():
         connect_args={"sslmode": "require", "connect_timeout": 30}
     )
 
-def release_daily_batch(batch_size: int = 10000):
+def release_daily_batch(batch_size: int = 1000):
     engine = get_engine()
     for attempt in range(3):
         try:
