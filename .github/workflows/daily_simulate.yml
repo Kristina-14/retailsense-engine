@@ -2,7 +2,7 @@ name: Daily Data Simulator
 
 on:
   schedule:
-    - cron: '0 1 * * *'
+    - cron: '0 1 * * *'   # 1am UTC = 6:30am IST
   workflow_dispatch:
 
 jobs:
@@ -21,22 +21,20 @@ jobs:
       - name: Install dependencies
         run: pip install sqlalchemy psycopg2-binary
 
-      - name: Wake up Supabase
+      - name: Wake up Neon
         env:
-          SUPABASE_PASSWORD: ${{ secrets.SUPABASE_PASSWORD }}
+          NEON_URL: ${{ secrets.NEON_URL }}
         run: |
           python -c "
           import os, time
           from sqlalchemy import create_engine, text
-          from urllib.parse import quote_plus
-          password = quote_plus(os.environ['SUPABASE_PASSWORD'])
-          url = f'postgresql://postgres.gsqizlwftqumpjhcmmzk:{password}@aws-1-ap-south-1.pooler.supabase.com:5432/postgres'
-          engine = create_engine(url)
+          engine = create_engine(os.environ['NEON_URL'],
+              connect_args={'sslmode':'require','connect_timeout':30})
           for i in range(3):
               try:
                   with engine.connect() as conn:
                       conn.execute(text('SELECT 1'))
-                  print('✓ Supabase awake')
+                  print('✓ Neon awake')
                   break
               except Exception as e:
                   print(f'Wakeup attempt {i+1}: {e}')
@@ -48,5 +46,5 @@ jobs:
 
       - name: Release daily batch
         env:
-          SUPABASE_PASSWORD: ${{ secrets.SUPABASE_PASSWORD }}
+          NEON_URL: ${{ secrets.NEON_URL }}
         run: python src/simulate_daily.py
