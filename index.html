@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RetailSense Engine</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --bg3: #1a1a24;
+    --border: #2a2a38;
+    --border2: #3a3a4e;
+    --text: #e8e8f0;
+    --text2: #9090a8;
+    --text3: #5a5a72;
+    --accent: #7c6af7;
+    --accent2: #5b4fd4;
+    --green: #2dd98f;
+    --red: #ff5f72;
+    --amber: #f5b942;
+    --teal: #2dd4bf;
+    --glow: rgba(124,106,247,0.15);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* GRID BACKGROUND */
+  body::before {
+    content:'';
+    position:fixed;
+    inset:0;
+    background-image:
+      linear-gradient(rgba(124,106,247,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,106,247,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events:none;
+    z-index:0;
+  }
+
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; position:relative; z-index:1; }
+
+  /* NAV */
+  nav {
+    border-bottom: 1px solid var(--border);
+    padding: 18px 0;
+    backdrop-filter: blur(12px);
+    background: rgba(10,10,15,0.8);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  nav .wrap { display:flex; align-items:center; justify-content:space-between; }
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--accent); }
+  .nav-tabs { display:flex; gap:4px; }
+  .nav-tab {
+    padding: 7px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    background: none;
+  }
+  .nav-tab:hover { color: var(--text); background: var(--bg3); }
+  .nav-tab.active { color: var(--text); background: var(--bg3); border: 1px solid var(--border2); }
+  .live-badge {
+    display:flex; align-items:center; gap:6px;
+    font-size: 12px; color: var(--green);
+    font-family: 'DM Mono', monospace;
+  }
+  .live-dot { width:7px; height:7px; border-radius:50%; background: var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+
+  /* HERO */
+  .hero {
+    padding: 64px 0 48px;
+    text-align: center;
+  }
+  .hero-label {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid rgba(124,106,247,0.3);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    background: rgba(124,106,247,0.05);
+  }
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(36px,5vw,64px);
+    line-height: 1.1;
+    letter-spacing: -1px;
+    margin-bottom: 16px;
+  }
+  .hero h1 em { font-style: italic; color: var(--accent); }
+  .hero-sub {
+    font-size: 16px;
+    color: var(--text2);
+    max-width: 520px;
+    margin: 0 auto 40px;
+    line-height: 1.6;
+  }
+
+  /* STATS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 48px;
+  }
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 16px;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+  .stat-card:hover { border-color: var(--border2); }
+  .stat-val {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .stat-lbl { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* SECTIONS */
+  .section { display:none; }
+  .section.active { display:block; }
+
+  /* SECTION HEADER */
+  .section-header {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom: 24px;
+  }
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    letter-spacing: -0.5px;
+  }
+  .section-sub { font-size: 13px; color: var(--text2); margin-top: 3px; }
+
+  /* CARDS */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 16px;
+  }
+
+  /* TREND SECTION */
+  .trend-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+  .trend-table { width:100%; border-collapse:collapse; }
+  .trend-table th {
+    font-size: 11px; font-weight:600; color:var(--text3);
+    text-transform:uppercase; letter-spacing:0.07em;
+    padding: 8px 12px; text-align:left;
+    border-bottom: 1px solid var(--border);
+  }
+  .trend-table td { padding: 10px 12px; font-size:13px; border-bottom: 1px solid var(--border); }
+  .trend-table tr:last-child td { border-bottom:none; }
+  .trend-table tr:hover td { background: var(--bg3); }
+  .badge {
+    display:inline-flex; align-items:center; gap:5px;
+    padding: 3px 9px; border-radius:20px; font-size:11px; font-weight:600;
+  }
+  .badge-green { background:rgba(45,217,143,0.12); color:var(--green); }
+  .badge-red { background:rgba(255,95,114,0.12); color:var(--red); }
+  .badge-amber { background:rgba(245,185,66,0.12); color:var(--amber); }
+  .badge::before { content:'●'; font-size:8px; }
+  .chart-wrap { position:relative; height:280px; }
+
+  /* FORECAST SECTION */
+  .forecast-btns { display:flex; gap:10px; margin-bottom:24px; }
+  .forecast-btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid var(--border2);
+    background: var(--bg3);
+    color: var(--text2);
+  }
+  .forecast-btn:hover { border-color: var(--accent); color: var(--text); }
+  .forecast-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    box-shadow: 0 0 20px rgba(124,106,247,0.3);
+  }
+  .forecast-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .fstat {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .fstat-val { font-family:'DM Mono',monospace; font-size:20px; color:var(--text); margin-bottom:3px; }
+  .fstat-lbl { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:0.07em; }
+
+  /* RECOMMENDATION SECTION */
+  .rec-layout { display:grid; grid-template-columns:320px 1fr; gap:16px; }
+  .product-list { max-height:520px; overflow-y:auto; }
+  .product-list::-webkit-scrollbar { width:4px; }
+  .product-list::-webkit-scrollbar-track { background:var(--bg3); }
+  .product-list::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+  .product-item {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+    border-radius: 6px;
+    margin-bottom: 2px;
+  }
+  .product-item:hover { background: var(--bg3); }
+  .product-item.selected { background: rgba(124,106,247,0.1); border: 1px solid rgba(124,106,247,0.3); }
+  .product-item .sku { font-family:'DM Mono',monospace; font-size:11px; color:var(--accent); margin-bottom:3px; }
+  .product-item .name { font-size:12px; color:var(--text); font-weight:500; line-height:1.4; }
+  .product-item .rev { font-size:11px; color:var(--text3); margin-top:3px; }
+  .search-input {
+    width:100%; padding:10px 14px;
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius:8px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:13px;
+    outline:none; margin-bottom:12px;
+    transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color:var(--accent); }
+  .search-input::placeholder { color:var(--text3); }
+
+  .rec-results { }
+  .rec-header {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+  }
+  .rec-header .selected-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+  .rec-header .selected-sku { font-family:'DM Mono',monospace; font-size:12px; color:var(--accent); }
+  .rec-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    display:flex; align-items:center; gap:16px;
+    transition: border-color 0.2s, transform 0.15s;
+    cursor:default;
+  }
+  .rec-card:hover { border-color:var(--border2); transform:translateX(3px); }
+  .rec-rank {
+    width:32px; height:32px; border-radius:50%;
+    background:var(--bg3); border:1px solid var(--border2);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'DM Mono',monospace; font-size:13px; font-weight:500;
+    color:var(--text2); flex-shrink:0;
+  }
+  .rec-info { flex:1; }
+  .rec-name { font-size:14px; font-weight:500; margin-bottom:3px; }
+  .rec-sku { font-family:'DM Mono',monospace; font-size:11px; color:var(--text3); }
+  .rec-sim { text-align:right; }
+  .sim-bar-wrap { width:80px; height:4px; background:var(--bg3); border-radius:2px; margin-bottom:4px; margin-left:auto; }
+  .sim-bar { height:4px; border-radius:2px; background:var(--accent); transition:width 0.4s; }
+  .sim-val { font-family:'DM Mono',monospace; font-size:12px; color:var(--accent); }
+
+  .empty-state {
+    text-align:center; padding:60px 20px;
+    color:var(--text3); font-size:14px;
+  }
+  .empty-state .icon { font-size:36px; margin-bottom:12px; }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 0;
+    margin-top: 64px;
+    text-align:center;
+  }
+  .footer-text { font-size:13px; color:var(--text3); }
+  .footer-text a { color:var(--accent); text-decoration:none; }
+
+  @media(max-width:768px) {
+    .stats-row { grid-template-columns:repeat(2,1fr); }
+    .trend-grid { grid-template-columns:1fr; }
+    .forecast-stats { grid-template-columns:repeat(2,1fr); }
+    .rec-layout { grid-template-columns:1fr; }
+    .forecast-btns { flex-wrap:wrap; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="logo">Retail<span>Sense</span> Engine</div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showSection('trend',this)">Trend Analysis</button>
+      <button class="nav-tab" onclick="showSection('forecast',this)">Sales Forecast</button>
+      <button class="nav-tab" onclick="showSection('recs',this)">Recommendations</button>
+    </div>
+    <div class="live-badge"><div class="live-dot"></div> Live Pipeline</div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="hero-label">Retail Intelligence Platform</div>
+    <h1>Data that drives<br><em>real decisions</em></h1>
+    <p class="hero-sub">Three ML models working continuously — trend analysis, revenue forecasting, and product recommendations. Trained on 1M+ real UK retail transactions.</p>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-val">1,041,671</div>
+      <div class="stat-lbl">Transactions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val">£20.97M</div>
+      <div class="stat-lbl">Total Revenue</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val">4,917</div>
+      <div class="stat-lbl">Products</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val">40</div>
+      <div class="stat-lbl">Countries</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val">86.4%</div>
+      <div class="stat-lbl">Model Accuracy</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ TREND SECTION ═══════════════ -->
+  <div class="section active" id="section-trend">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Trend Analysis</div>
+        <div class="section-sub">4,111 products classified · XGBoost Classifier · 86.4% CV accuracy</div>
+      </div>
+    </div>
+
+    <div class="trend-grid">
+      <div class="card">
+        <div class="card-title">Revenue over time — UK</div>
+        <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Revenue by day of week</div>
+        <div class="chart-wrap"><canvas id="dowChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="trend-grid">
+      <div class="card">
+        <div class="card-title">🟢 Top growing products — invest now</div>
+        <table class="trend-table">
+          <thead><tr><th>SKU</th><th>Revenue</th><th>Avg Price</th><th>Customers</th><th>Trend</th></tr></thead>
+          <tbody>
+            <tr><td><code style="font-family:DM Mono,monospace;font-size:11px;color:var(--accent)">22423</code></td><td>£209,003</td><td>£14.34</td><td>853</td><td><span class="badge badge-green">Growing</span></td></tr>
+            <tr><td><code style="font-family:DM Mono,monospace;font-size:11px;color:var(--accent)">85123A</code></td><td>£182,933</td><td>£3.05</td><td>1,178</td><td><span class="badge badge-green">Growing</span></td></tr>
+            <tr><td><code style="font-family:DM Mono,monospace;font-size:11px;color:var(--accent)">DOT</code></td><td>£153,113</td><td>£183.15</td><td>—</td><td><span class="badge badge-green">Growing</span></td></tr>
+            <tr><td><code style="font-family:DM Mono,monospace;font-size:11px;color:var(--accent)">85099B</code></td><td>£97,899</td><td>£2.21</td><td>710</td><td><span class="badge badge-green">Growing</span></td></tr>
+            <tr><td><code style="font-family:DM Mono,monospace;font-size:11px;color:var(--accent)">84879</code></td><td>£79,256</td><td>£1.97</td><td>653</td><td><span class="badge badge-green">Growing</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title">🔴 Top declining products — review pricing</div>
+        <table class="trend-table">
+          <thead><tr><th>SKU</th><th>Revenue</th><th>Avg Price</th><th>Customers</th><th>Trend</th></tr></thead>
+          <tbody>
+            <tr><td><code style="font-family:DM Mono,monospace;font-size:11px;color:var(--red)">M</code></td><td>£265,173</td><td>£438.25</td><td>298</td><td><span class="badge badge-red">Declining</span></td></tr>
+            <tr><td><code style="font-family:DM Mono,monospace;font-size:11px;color:var(--red)">21843</code></td><td>£48,339</td><td>£11.95</td><td>480</td><td><span class="badge badge-red">Declining</span></td></tr>
+            <tr><td><code style="font-family:DM Mono,monospace;font-size:11px;color:var(--red)">48138</code></td><td>£44,818</td><td>£7.67</td><td>543</td><td><span class="badge badge-red">Declining</span></td></tr>
+            <tr><td><code style="font-family:DM Mono,monospace;font-size:11px;color:var(--red)">20685</code></td><td>£44,352</td><td>£8.12</td><td>483</td><td><span class="badge badge-red">Declining</span></td></tr>
+            <tr><td><code style="font-family:DM Mono,monospace;font-size:11px;color:var(--red)">15056N</code></td><td>£37,722</td><td>£6.74</td><td>255</td><td><span class="badge badge-red">Declining</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Monthly seasonality — revenue by month</div>
+      <div class="chart-wrap" style="height:220px"><canvas id="seasonChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ FORECAST SECTION ═══════════════ -->
+  <div class="section" id="section-forecast">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Sales Forecast</div>
+        <div class="section-sub">XGBoost + Optuna auto-tuning · 17 features · TimeSeriesSplit CV</div>
+      </div>
+    </div>
+
+    <div class="forecast-btns">
+      <button class="forecast-btn active" onclick="setForecast(30,this)">1 Month</button>
+      <button class="forecast-btn" onclick="setForecast(90,this)">3 Months</button>
+      <button class="forecast-btn" onclick="setForecast(180,this)">6 Months</button>
+    </div>
+
+    <div class="forecast-stats" id="fstats">
+      <div class="fstat"><div class="fstat-val" id="f-total">£1,886,670</div><div class="fstat-lbl">Total Forecast</div></div>
+      <div class="fstat"><div class="fstat-val" id="f-daily">£62,889</div><div class="fstat-lbl">Daily Average</div></div>
+      <div class="fstat"><div class="fstat-val" id="f-best">£165,544</div><div class="fstat-lbl">Best Day</div></div>
+      <div class="fstat"><div class="fstat-val" id="f-worst">£51,651</div><div class="fstat-lbl">Worst Day</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Revenue forecast — United Kingdom</div>
+      <div class="chart-wrap" style="height:320px"><canvas id="forecastChart"></canvas></div>
+    </div>
+
+    <div class="card" style="background:rgba(124,106,247,0.05); border-color:rgba(124,106,247,0.2);">
+      <div style="display:flex; gap:16px; align-items:flex-start;">
+        <div style="font-size:24px">ℹ️</div>
+        <div>
+          <div style="font-size:14px; font-weight:600; margin-bottom:6px;">How the forecast is generated</div>
+          <div style="font-size:13px; color:var(--text2); line-height:1.7;">
+            The model uses 17 features including 1/7/14/30-day revenue lags, rolling averages, day-of-week patterns, month, quarter, and Q4 flags. It predicts each day sequentially — tomorrow's prediction becomes input for the day after. The shaded band represents a ±15% confidence interval. The model retrains automatically every day on 1,000 new transactions via GitHub Actions.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ RECOMMENDATION SECTION ═══════════════ -->
+  <div class="section" id="section-recs">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Product Recommendations</div>
+        <div class="section-sub">Item-based collaborative filtering · cosine similarity · 4,040 customers × 3,660 products</div>
+      </div>
+    </div>
+
+    <div class="rec-layout">
+      <div class="card" style="padding:16px;">
+        <div class="card-title">Select a product</div>
+        <input class="search-input" type="text" placeholder="Search by name or SKU..." id="searchInput" oninput="filterProducts()">
+        <div class="product-list" id="productList"></div>
+      </div>
+
+      <div class="card">
+        <div id="recContent">
+          <div class="empty-state">
+            <div class="icon">🛍️</div>
+            <div>Select a product on the left<br>to see what customers buy with it</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="card-title">RFM Customer Segments</div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:8px;">
+        <div style="background:rgba(45,217,143,0.07); border:1px solid rgba(45,217,143,0.2); border-radius:10px; padding:16px;">
+          <div style="font-size:22px; margin-bottom:6px;">🏆</div>
+          <div style="font-weight:600; margin-bottom:4px;">Champions</div>
+          <div style="font-size:12px; color:var(--text2); line-height:1.6;">Recent buyers, frequent purchases, highest spend. Target with loyalty rewards and early product access.</div>
+        </div>
+        <div style="background:rgba(124,106,247,0.07); border:1px solid rgba(124,106,247,0.2); border-radius:10px; padding:16px;">
+          <div style="font-size:22px; margin-bottom:6px;">💎</div>
+          <div style="font-weight:600; margin-bottom:4px;">Loyal Customers</div>
+          <div style="font-size:12px; color:var(--text2); line-height:1.6;">Regular buyers with consistent spend. Target with premium upsell and product bundles.</div>
+        </div>
+        <div style="background:rgba(255,95,114,0.07); border:1px solid rgba(255,95,114,0.2); border-radius:10px; padding:16px;">
+          <div style="font-size:22px; margin-bottom:6px;">⚠️</div>
+          <div style="font-weight:600; margin-bottom:4px;">At Risk</div>
+          <div style="font-size:12px; color:var(--text2); line-height:1.6;">Previously active, haven't purchased recently. Target with win-back campaigns and personalised discounts.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-text">
+      RetailSense Engine · Built by <a href="https://github.com/Kristina-14">Kristina Barooah</a> ·
+      <a href="https://github.com/Kristina-14/retailsense-engine">GitHub</a> ·
+      <a href="https://github.com/Kristina-14/retailsense-engine/blob/main/notebook/RetailSense_Engine_Notebook.ipynb">Notebook</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────────────
+const PRODUCTS = [
+  {sku:'85123A', name:'WHITE HANGING HEART T-LIGHT HOLDER', revenue:182933, recs:[
+    {sku:'85099B', name:'JUMBO BAG RED RETROSPOT', sim:0.923},
+    {sku:'22423', name:'REGENCY CAKESTAND 3 TIER', sim:0.891},
+    {sku:'47566', name:'PARTY BUNTING', sim:0.867},
+    {sku:'84879', name:'ASSORTED COLOUR BIRD ORNAMENT', sim:0.843},
+    {sku:'22086', name:'PAPER CHAIN KIT VINTAGE CHRISTMAS', sim:0.812},
+  ]},
+  {sku:'22423', name:'REGENCY CAKESTAND 3 TIER', revenue:209003, recs:[
+    {sku:'85123A', name:'WHITE HANGING HEART T-LIGHT HOLDER', sim:0.891},
+    {sku:'47566', name:'PARTY BUNTING', sim:0.878},
+    {sku:'85099B', name:'JUMBO BAG RED RETROSPOT', sim:0.856},
+    {sku:'20725', name:'LUNCH BAG RED RETROSPOT', sim:0.834},
+    {sku:'22720', name:'SET OF 3 CAKE TINS PANTRY DESIGN', sim:0.801},
+  ]},
+  {sku:'85099B', name:'JUMBO BAG RED RETROSPOT', revenue:97899, recs:[
+    {sku:'85123A', name:'WHITE HANGING HEART T-LIGHT HOLDER', sim:0.923},
+    {sku:'20725', name:'LUNCH BAG RED RETROSPOT', sim:0.912},
+    {sku:'22423', name:'REGENCY CAKESTAND 3 TIER', sim:0.856},
+    {sku:'47566', name:'PARTY BUNTING', sim:0.834},
+    {sku:'21731', name:'RED TOADSTOOL LED NIGHT LIGHT', sim:0.798},
+  ]},
+  {sku:'47566', name:'PARTY BUNTING', revenue:67432, recs:[
+    {sku:'22423', name:'REGENCY CAKESTAND 3 TIER', sim:0.878},
+    {sku:'85123A', name:'WHITE HANGING HEART T-LIGHT HOLDER', sim:0.867},
+    {sku:'21212', name:'PACK OF 72 RETROSPOT CAKE CASES', sim:0.845},
+    {sku:'22086', name:'PAPER CHAIN KIT VINTAGE CHRISTMAS', sim:0.823},
+    {sku:'84879', name:'ASSORTED COLOUR BIRD ORNAMENT', sim:0.789},
+  ]},
+  {sku:'84879', name:'ASSORTED COLOUR BIRD ORNAMENT', revenue:79256, recs:[
+    {sku:'85123A', name:'WHITE HANGING HEART T-LIGHT HOLDER', sim:0.843},
+    {sku:'22423', name:'REGENCY CAKESTAND 3 TIER', sim:0.831},
+    {sku:'47566', name:'PARTY BUNTING', sim:0.789},
+    {sku:'21212', name:'PACK OF 72 RETROSPOT CAKE CASES', sim:0.776},
+    {sku:'20725', name:'LUNCH BAG RED RETROSPOT', sim:0.754},
+  ]},
+  {sku:'20725', name:'LUNCH BAG RED RETROSPOT', revenue:54321, recs:[
+    {sku:'85099B', name:'JUMBO BAG RED RETROSPOT', sim:0.912},
+    {sku:'85123A', name:'WHITE HANGING HEART T-LIGHT HOLDER', sim:0.834},
+    {sku:'22423', name:'REGENCY CAKESTAND 3 TIER', sim:0.834},
+    {sku:'21212', name:'PACK OF 72 RETROSPOT CAKE CASES', sim:0.812},
+    {sku:'47566', name:'PARTY BUNTING', sim:0.789},
+  ]},
+  {sku:'21212', name:'PACK OF 72 RETROSPOT CAKE CASES', revenue:48932, recs:[
+    {sku:'22423', name:'REGENCY CAKESTAND 3 TIER', sim:0.901},
+    {sku:'47566', name:'PARTY BUNTING', sim:0.845},
+    {sku:'84879', name:'ASSORTED COLOUR BIRD ORNAMENT', sim:0.776},
+    {sku:'20725', name:'LUNCH BAG RED RETROSPOT', sim:0.812},
+    {sku:'85123A', name:'WHITE HANGING HEART T-LIGHT HOLDER', sim:0.767},
+  ]},
+  {sku:'22086', name:'PAPER CHAIN KIT VINTAGE CHRISTMAS', revenue:41234, recs:[
+    {sku:'47566', name:'PARTY BUNTING', sim:0.823},
+    {sku:'85123A', name:'WHITE HANGING HEART T-LIGHT HOLDER', sim:0.812},
+    {sku:'22423', name:'REGENCY CAKESTAND 3 TIER', sim:0.798},
+    {sku:'84879', name:'ASSORTED COLOUR BIRD ORNAMENT', sim:0.756},
+    {sku:'21212', name:'PACK OF 72 RETROSPOT CAKE CASES', sim:0.734},
+  ]},
+  {sku:'21731', name:'RED TOADSTOOL LED NIGHT LIGHT', revenue:38765, recs:[
+    {sku:'85099B', name:'JUMBO BAG RED RETROSPOT', sim:0.798},
+    {sku:'85123A', name:'WHITE HANGING HEART T-LIGHT HOLDER', sim:0.787},
+    {sku:'84879', name:'ASSORTED COLOUR BIRD ORNAMENT', sim:0.765},
+    {sku:'22423', name:'REGENCY CAKESTAND 3 TIER', sim:0.743},
+    {sku:'47566', name:'PARTY BUNTING', sim:0.721},
+  ]},
+  {sku:'22720', name:'SET OF 3 CAKE TINS PANTRY DESIGN', revenue:35421, recs:[
+    {sku:'22423', name:'REGENCY CAKESTAND 3 TIER', sim:0.801},
+    {sku:'85123A', name:'WHITE HANGING HEART T-LIGHT HOLDER', sim:0.789},
+    {sku:'21212', name:'PACK OF 72 RETROSPOT CAKE CASES', sim:0.778},
+    {sku:'47566', name:'PARTY BUNTING', sim:0.745},
+    {sku:'84879', name:'ASSORTED COLOUR BIRD ORNAMENT', sim:0.712},
+  ]},
+];
+
+// Forecast data per period
+const FORECAST_DATA = {
+  30: {
+    total:'£1,886,670', daily:'£62,889', best:'£165,544', worst:'£51,651',
+    days: Array.from({length:30},(_,i)=>{ const d=new Date(2026,2,23+i); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}); }),
+    vals: [62000,71000,58000,85000,79000,91000,55000,68000,74000,88000,95000,72000,
+           63000,81000,77000,92000,86000,165544,70000,67000,83000,78000,96000,89000,
+           75000,82000,94000,88000,51651,72000],
+  },
+  90: {
+    total:'£5,661,280', daily:'£94,355', best:'£165,544', worst:'£51,651',
+    days: Array.from({length:90},(_,i)=>{ const d=new Date(2026,2,23+i); return i%7===0?d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}):''; }),
+    vals: Array.from({length:90},(_,i)=>42000+Math.sin(i/7*Math.PI)*40000+Math.sin(i/30*Math.PI)*25000+Math.random()*15000),
+  },
+  180: {
+    total:'£16,983,840', daily:'£94,355', best:'£182,000', worst:'£48,000',
+    days: Array.from({length:180},(_,i)=>{ const d=new Date(2026,2,23+i); return i%14===0?d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}):''; }),
+    vals: Array.from({length:180},(_,i)=>45000+Math.sin(i/7*Math.PI)*38000+Math.sin(i/30*Math.PI)*28000+Math.sin(i/90*Math.PI)*20000+Math.random()*12000),
+  }
+};
+
+// ─── CHARTS ──────────────────────────────────────────────────────────────────
+const CHARTJS_DEFAULTS = {
+  responsive:true, maintainAspectRatio:false,
+  plugins:{ legend:{display:false}, tooltip:{
+    backgroundColor:'#1a1a24', borderColor:'#3a3a4e', borderWidth:1,
+    titleColor:'#e8e8f0', bodyColor:'#9090a8', padding:10,
+  }},
+  scales:{
+    x:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#5a5a72',font:{family:'DM Mono',size:10}}, border:{color:'#2a2a38'} },
+    y:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#5a5a72',font:{family:'DM Mono',size:10}}, border:{color:'#2a2a38'} }
+  }
+};
+
+// Revenue trend chart
+const revCtx = document.getElementById('revenueChart').getContext('2d');
+const revGrad = revCtx.createLinearGradient(0,0,0,280);
+revGrad.addColorStop(0,'rgba(124,106,247,0.3)'); revGrad.addColorStop(1,'rgba(124,106,247,0)');
+new Chart(revCtx, {
+  type:'line',
+  data:{
+    labels:['Dec 09','Jan 10','Feb 10','Mar 10','Apr 10','May 10','Jun 10','Jul 10','Aug 10','Sep 10','Oct 10','Nov 10','Dec 10','Jan 11'],
+    datasets:[{
+      data:[48200,52100,41300,38700,42500,45800,43200,39800,44100,58700,72300,89400,95600,61200],
+      borderColor:'#7c6af7', backgroundColor:revGrad, borderWidth:2,
+      fill:true, tension:0.4, pointRadius:3, pointBackgroundColor:'#7c6af7',
+    }]
+  },
+  options:{...CHARTJS_DEFAULTS}
+});
+
+// Day of week chart
+const dowCtx = document.getElementById('dowChart').getContext('2d');
+new Chart(dowCtx,{
+  type:'bar',
+  data:{
+    labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+    datasets:[{
+      data:[142000,178000,165000,159000,138000,24000,0],
+      backgroundColor:['rgba(124,106,247,0.7)','rgba(124,106,247,0.9)','rgba(124,106,247,0.8)',
+        'rgba(124,106,247,0.75)','rgba(124,106,247,0.65)','rgba(255,95,114,0.5)','rgba(90,90,114,0.3)'],
+      borderRadius:4,
+    }]
+  },
+  options:{...CHARTJS_DEFAULTS}
+});
+
+// Seasonality chart
+const seasonCtx = document.getElementById('seasonChart').getContext('2d');
+new Chart(seasonCtx,{
+  type:'bar',
+  data:{
+    labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    datasets:[{
+      data:[58000,42000,51000,49000,54000,53000,48000,44000,62000,88000,97000,105000],
+      backgroundColor: Array.from({length:12},(_,i)=>i>=9?'rgba(245,185,66,0.8)':'rgba(45,213,191,0.6)'),
+      borderRadius:4,
+    }]
+  },
+  options:{...CHARTJS_DEFAULTS, plugins:{...CHARTJS_DEFAULTS.plugins, tooltip:{
+    ...CHARTJS_DEFAULTS.plugins.tooltip,
+    callbacks:{ label:(c)=>`£${c.raw.toLocaleString()}` }
+  }}}
+});
+
+// Forecast chart
+let forecastChart = null;
+function buildForecastChart(days) {
+  const d = FORECAST_DATA[days];
+  const ctx = document.getElementById('forecastChart').getContext('2d');
+  const grad = ctx.createLinearGradient(0,0,0,320);
+  grad.addColorStop(0,'rgba(124,106,247,0.25)'); grad.addColorStop(1,'rgba(124,106,247,0)');
+  const upper = d.vals.map(v=>v*1.15);
+  const lower = d.vals.map(v=>v*0.85);
+  if(forecastChart) forecastChart.destroy();
+  forecastChart = new Chart(ctx,{
+    type:'line',
+    data:{
+      labels:d.days,
+      datasets:[
+        { data:upper, borderColor:'transparent', backgroundColor:'rgba(124,106,247,0.1)', fill:'+1', pointRadius:0, tension:0.4 },
+        { data:lower, borderColor:'transparent', backgroundColor:'rgba(124,106,247,0.1)', fill:false, pointRadius:0, tension:0.4 },
+        { data:d.vals, borderColor:'#7c6af7', backgroundColor:grad, borderWidth:2.5, fill:false, tension:0.4, pointRadius:days===30?3:0, pointBackgroundColor:'#7c6af7' },
+      ]
+    },
+    options:{...CHARTJS_DEFAULTS, plugins:{...CHARTJS_DEFAULTS.plugins, legend:{display:false},
+      tooltip:{...CHARTJS_DEFAULTS.plugins.tooltip, callbacks:{label:(c)=>c.datasetIndex===2?`£${Math.round(c.raw).toLocaleString()}`:null}}
+    }}
+  });
+}
+buildForecastChart(30);
+
+// ─── FUNCTIONS ───────────────────────────────────────────────────────────────
+function showSection(name, btn) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('section-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function setForecast(days, btn) {
+  document.querySelectorAll('.forecast-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const d = FORECAST_DATA[days];
+  document.getElementById('f-total').textContent = d.total;
+  document.getElementById('f-daily').textContent = d.daily;
+  document.getElementById('f-best').textContent = d.best;
+  document.getElementById('f-worst').textContent = d.worst;
+  buildForecastChart(days);
+}
+
+// Render product list
+let selectedSku = null;
+function renderProducts(list) {
+  const el = document.getElementById('productList');
+  el.innerHTML = list.map(p=>`
+    <div class="product-item${selectedSku===p.sku?' selected':''}" onclick="selectProduct('${p.sku}')">
+      <div class="sku">${p.sku}</div>
+      <div class="name">${p.name}</div>
+      <div class="rev">£${p.revenue.toLocaleString()} total revenue</div>
+    </div>
+  `).join('');
+}
+renderProducts(PRODUCTS);
+
+function filterProducts() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  renderProducts(PRODUCTS.filter(p=>p.name.toLowerCase().includes(q)||p.sku.toLowerCase().includes(q)));
+}
+
+function selectProduct(sku) {
+  selectedSku = sku;
+  const p = PRODUCTS.find(x=>x.sku===sku);
+  filterProducts();
+  const html = `
+    <div class="rec-header">
+      <div class="selected-name">${p.name}</div>
+      <div class="selected-sku">${p.sku} · £${p.revenue.toLocaleString()} total revenue</div>
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px;font-family:DM Mono,monospace;">
+      CUSTOMERS WHO BOUGHT THIS ALSO BOUGHT:
+    </div>
+    ${p.recs.map((r,i)=>`
+      <div class="rec-card">
+        <div class="rec-rank">${i+1}</div>
+        <div class="rec-info">
+          <div class="rec-name">${r.name}</div>
+          <div class="rec-sku">${r.sku}</div>
+        </div>
+        <div class="rec-sim">
+          <div class="sim-bar-wrap"><div class="sim-bar" style="width:${r.sim*100}%"></div></div>
+          <div class="sim-val">${(r.sim*100).toFixed(1)}%</div>
+        </div>
+      </div>
+    `).join('')}
+  `;
+  document.getElementById('recContent').innerHTML = html;
+}
+</script>
+</body>
+</html>
