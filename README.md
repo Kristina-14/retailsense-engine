@@ -193,7 +193,6 @@ The `release_date` column gates data visibility. Rows with `release_date IS NULL
 | Visualisation | Plotly (interactive) |
 | Orchestration | GitHub Actions (cron daily) |
 | Notebook | Google Colab |
-| **Total cost** | **£0 / month** |
 
 ---
 
