@@ -212,48 +212,7 @@ retailsense-engine/
 └── README.md
 ```
 
----
-
-## Setup
-
-### 1. Add GitHub Secret
-`Settings → Secrets → Actions → New repository secret`
-- Name: `NEON_URL`
-- Value: your Neon PostgreSQL connection string
-
-### 2. Open notebook in Colab
-```
-https://colab.research.google.com/github/Kristina-14/retailsense-engine/blob/main/notebook/RetailSense_Engine_Notebook.ipynb
-```
-
-### 3. Run order
-
-| Cells | Action | Frequency |
-|-------|--------|-----------|
-| 1–5 | Setup + Neon DB connection | Every session |
-| 6 | Load Kaggle → Neon | **Once ever** |
-| 7A | Release 500k initial rows | **Once ever** |
-| 8 | Daily batch release | Auto via GitHub Actions |
-| 9–13 | EDA + Train all 3 models | Every session |
-| 14–15 | Live test + Forecast | Daily |
-| 16 | Full auto pipeline | Daily |
-
----
-
-## GitHub Actions
-
-Runs at **1am UTC (6:30am IST)** daily:
-
-```yaml
-on:
-  schedule:
-    - cron: '0 1 * * *'
-  workflow_dispatch:  # manual trigger also available
-```
-
-Each run: wakes Neon → releases 1,000 rows → confirms success. Takes ~19 seconds.
-
----
+------
 
 ## Live Dashboard
 
@@ -265,7 +224,7 @@ Features: live trend analysis charts · 1/3/6-month forecast buttons · interact
 
 ## Author
 
-**Kristina Barooah** — Implementation Consultant → Data Scientist
+**Kristina Barooah** — 
 Built as a portfolio project demonstrating end-to-end ML engineering.
 
-*RetailSense Engine — built from scratch. Zero cost. Fully automated.*
+*RetailSense Engine — built from scratch. Fully automated.*
