@@ -161,6 +161,9 @@ For any product, returns the top N most similar products based on co-purchase pa
 | **At Risk** | Haven't bought recently | Win-back campaigns, discounts |
 
 ---
+<img width="1894" height="907" alt="Screenshot (1441)" src="https://github.com/user-attachments/assets/1345b330-39aa-4104-8fc4-687a54bf9d65" />
+
+---
 
 ## Data Flow
 
