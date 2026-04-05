@@ -103,8 +103,10 @@ XGBoost Classifier  XGBoost + Optuna  Cosine Similarity
 
 How it works: monthly revenue per SKU is fitted with a linear regression slope. Positive slope > 50 = Growing. Negative slope < -50 = Declining. XGBoost classifier learns which product characteristics predict trend category.
 ---
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/482c56a2-768a-4def-b675-236158cfad42" />
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/33316302-709e-4e19-bc5a-86acbf797e37" />
+<!-- <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/482c56a2-768a-4def-b675-236158cfad42" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/33316302-709e-4e19-bc5a-86acbf797e37" /> -->
+<img width="1896" height="913" alt="Trend Analysis1" src="https://github.com/user-attachments/assets/eb42025c-4807-456f-826e-d85aad889b36" />
+<img width="1894" height="907" alt="Trend Analysis2" src="https://github.com/user-attachments/assets/8af0226c-17df-4548-8323-a78682a4397b" />
 
 ---
 
