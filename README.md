@@ -136,6 +136,9 @@ TARGET = 'revenue_next_7d'
 ```
 
 Pipeline: XGBoost Regressor → Optuna 30-trial auto-tuning → TimeSeriesSplit 5-fold CV → auto-retrain daily on new released data.
+---
+
+<img width="1894" height="900" alt="Screenshot (1440)" src="https://github.com/user-attachments/assets/31ee7083-da26-49c3-b565-689d01368457" />
 
 ---
 
